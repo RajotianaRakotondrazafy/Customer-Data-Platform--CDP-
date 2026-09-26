@@ -114,6 +114,10 @@ final class Database
     public function transaction(callable $callback): mixed
     {
         $pdo = $this->pdo();
+        if ($pdo->inTransaction()) {
+            return $callback($this);
+        }
+
         $pdo->beginTransaction();
         try {
             $result = $callback($this);

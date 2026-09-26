@@ -10,6 +10,14 @@ use DateTimeImmutable;
 
 final class EventRepository extends AbstractRepository
 {
+    /** @param string $dedupHash Raw 32-byte SHA-256. */
+    public function findIdByHash(string $dedupHash): ?int
+    {
+        $row = $this->db->fetchOne('SELECT id FROM events WHERE dedup_hash = ?', [$dedupHash]);
+
+        return $row === null ? null : (int) $row['id'];
+    }
+
     /**
      * @param array<string, mixed> $properties Raw payload, stored as JSON.
      * @param string               $dedupHash  Raw 32-byte SHA-256.

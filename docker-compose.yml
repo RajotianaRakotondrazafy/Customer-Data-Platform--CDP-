@@ -1,3 +1,5 @@
+name: cdp
+
 services:
   php:
     build: ./docker/php
