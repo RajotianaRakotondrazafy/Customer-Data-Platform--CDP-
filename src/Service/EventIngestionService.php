@@ -28,10 +28,6 @@ final class EventIngestionService
     /** Numeric property summed into customer_event_stats.total_amount. */
     public const AMOUNT_PROPERTY = 'amount';
 
-    private const MAX_INDEXED_STRING = 255;
-    /** DECIMAL(20,6): 14 integer digits. */
-    private const MAX_INDEXED_NUMBER = 1e14;
-
     public function __construct(
         private readonly Database $db,
         private readonly CustomerRepository $customers,
@@ -79,8 +75,7 @@ final class EventIngestionService
     }
 
     /**
-     * Properties that fit the typed columns. Numbers and booleans (1/0) become numeric
-     * strings — never floats, so DECIMAL values are not rounded twice.
+     * Properties that fit the typed columns (see PropertyValue); the others stay JSON only.
      *
      * @param array<string, mixed> $properties
      * @return array<string, array{bool, string}> key => [is numeric, value]
@@ -89,15 +84,7 @@ final class EventIngestionService
     {
         $indexed = [];
         foreach ($properties as $key => $value) {
-            $normalized = match (true) {
-                is_bool($value)   => [true, $value ? '1' : '0'],
-                is_int($value)    => abs($value) < self::MAX_INDEXED_NUMBER ? [true, (string) $value] : null,
-                is_float($value)  => is_finite($value) && abs($value) < self::MAX_INDEXED_NUMBER
-                    ? [true, sprintf('%.6F', $value)]
-                    : null,
-                is_string($value) => mb_strlen($value) <= self::MAX_INDEXED_STRING ? [false, $value] : null,
-                default           => null, // null, arrays, objects: JSON only
-            };
+            $normalized = PropertyValue::normalize($value);
             if ($normalized !== null) {
                 $indexed[(string) $key] = $normalized;
             }

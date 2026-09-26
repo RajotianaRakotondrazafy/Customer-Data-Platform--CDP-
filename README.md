@@ -20,6 +20,8 @@ No `.env` needed: DB credentials are set in `docker-compose.yml`. The schema in 
 
 Next starts: `docker compose up -d` · stop: `docker compose down`.
 
+phpMyAdmin (dev only) is available at http://localhost:8081 to browse the database — logged in automatically as `cdp`.
+
 ### Without Docker
 
 Requires PHP 8.2+ with `pdo_mysql`, Composer and a local MySQL 8.

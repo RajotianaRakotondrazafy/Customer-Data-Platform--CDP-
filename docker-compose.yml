@@ -45,5 +45,20 @@ services:
       timeout: 3s
       retries: 20
 
+  # Dev tool: web UI to browse the database at http://localhost:8081 (auto-login as "cdp").
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: cdp
+      PMA_PASSWORD: cdp
+      UPLOAD_LIMIT: 64M
+    depends_on:
+      mysql:
+        condition: service_healthy
+
 volumes:
   mysql_data:
