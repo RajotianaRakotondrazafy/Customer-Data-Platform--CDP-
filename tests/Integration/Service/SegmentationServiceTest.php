@@ -90,9 +90,13 @@ final class SegmentationServiceTest extends DatabaseTestCase
      */
     private function names(array $conditions, string $match = 'all'): array
     {
-        $result = $this->segmentation->query(
-            $this->validator->validate(['conditions' => $conditions, 'match' => $match, 'limit' => 1000]),
-        );
+        // The table may hold other data (e.g. the seed): start the page right before this dataset.
+        $result = $this->segmentation->query($this->validator->validate([
+            'conditions' => $conditions,
+            'match'      => $match,
+            'limit'      => 1000,
+            'cursor'     => min($this->ids) - 1,
+        ]));
         $byId = array_flip($this->ids);
 
         return array_values(array_filter(array_map(fn ($c) => $byId[$c->id] ?? null, $result->customers)));

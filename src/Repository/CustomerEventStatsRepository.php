@@ -34,6 +34,40 @@ final class CustomerEventStatsRepository extends AbstractRepository
     }
 
     /**
+     * Totals for a page of customers (PK reads on customer_event_stats, no event scan).
+     *
+     * @param list<int> $customerIds
+     * @return array<int, array{events: int, spend: string}> customer id => totals
+     */
+    public function totalsFor(array $customerIds, string $purchaseEvent): array
+    {
+        if ($customerIds === []) {
+            return [];
+        }
+
+        $rows = $this->db->fetchAll(
+            sprintf(
+                'SELECT s.customer_id,
+                        SUM(s.event_count) AS events,
+                        SUM(IF(t.name = ?, s.total_amount, 0)) AS spend
+                 FROM customer_event_stats s
+                 JOIN event_types t ON t.id = s.event_type_id
+                 WHERE s.customer_id IN (%s)
+                 GROUP BY s.customer_id',
+                self::placeholders(count($customerIds)),
+            ),
+            [$purchaseEvent, ...$customerIds],
+        );
+
+        $totals = [];
+        foreach ($rows as $row) {
+            $totals[(int) $row['customer_id']] = ['events' => (int) $row['events'], 'spend' => (string) $row['spend']];
+        }
+
+        return $totals;
+    }
+
+    /**
      * All aggregates of a customer (one PK range read).
      *
      * @return list<CustomerEventStats> Ordered by event type name.

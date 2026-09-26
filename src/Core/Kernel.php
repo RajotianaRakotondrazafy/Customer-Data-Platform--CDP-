@@ -26,6 +26,7 @@ final class Kernel
 
         $container = new Container();
         $container->set(Database::class, static fn (): Database => new Database($config['db']));
+        $container->set(View::class, static fn (): View => new View($rootDir . '/views'));
 
         $router = new Router();
         (require $rootDir . '/config/routes.php')($router);

@@ -69,16 +69,20 @@ final class CustomerRepository extends AbstractRepository
 
     /**
      * Keyset pagination (WHERE id > cursor): constant cost at any depth, unlike OFFSET.
+     * Optional email prefix search (LIKE 'prefix%' can use uq_customers_email).
      *
      * @return list<Customer>
      */
-    public function paginate(int $limit, int $afterId = 0): array
+    public function paginate(int $limit, int $afterId = 0, ?string $emailPrefix = null): array
     {
-        $rows = $this->db->fetchAll(
-            'SELECT id, email, name, created_at, updated_at FROM customers WHERE id > ? ORDER BY id LIMIT ?',
-            [$afterId, $limit],
-        );
+        $sql = 'SELECT id, email, name, created_at, updated_at FROM customers WHERE id > ?';
+        $params = [$afterId];
+        if ($emailPrefix !== null && $emailPrefix !== '') {
+            $sql .= " AND email LIKE ? ESCAPE '!'";
+            $params[] = strtr($emailPrefix, ['!' => '!!', '%' => '!%', '_' => '!_']) . '%';
+        }
+        $params[] = $limit;
 
-        return array_map(Customer::fromRow(...), $rows);
+        return array_map(Customer::fromRow(...), $this->db->fetchAll("$sql ORDER BY id LIMIT ?", $params));
     }
 }

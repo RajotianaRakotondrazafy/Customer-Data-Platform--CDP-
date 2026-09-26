@@ -27,6 +27,13 @@ services:
 
   mysql:
     image: mysql:8.0
+    # Dev tuning: the working set (tables + indexes) must fit in the buffer pool
+    # (default 128M), and flush the redo log once per second instead of at every
+    # commit (up to 1s of writes lost on a crash — acceptable locally, not in prod).
+    command:
+      - --innodb-buffer-pool-size=512M
+      - --innodb-flush-log-at-trx-commit=2
+      - --innodb-redo-log-capacity=512M
     ports:
       - "3306:3306"
     environment:

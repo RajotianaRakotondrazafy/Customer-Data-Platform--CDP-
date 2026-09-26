@@ -20,7 +20,19 @@ No `.env` needed: DB credentials are set in `docker-compose.yml`. The schema in 
 
 Next starts: `docker compose up -d` · stop: `docker compose down`.
 
+Web interface: http://localhost:8080 — customers list (email search), customer profile, latest events, segment builder (runs through the same validator and engine as the API, and shows the equivalent `curl`).
+
 phpMyAdmin (dev only) is available at http://localhost:8081 to browse the database — logged in automatically as `cdp`.
+
+### Seed & benchmark
+
+```bash
+docker compose exec php composer seed        # WIPES the tables, then 10,000 customers / 200,000 events (~2-3 min)
+docker compose exec php php database/seed.php --customers=2000 --events=20000 --seed=7   # smaller / other dataset
+docker compose exec php composer benchmark   # times segment queries + profile on the current data
+```
+
+The seed is reproducible (same `--seed` = same data) and creates a demo API key: `cdp_demo_key_change_me_0123456789`.
 
 ### Without Docker
 

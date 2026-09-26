@@ -23,6 +23,8 @@
     },
     "scripts": {
         "serve": "php -S localhost:8000 -t public public/index.php",
+        "seed": "php database/seed.php",
+        "benchmark": "php database/benchmark.php",
         "test": "phpunit"
     },
     "config": {

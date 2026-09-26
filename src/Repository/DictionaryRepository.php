@@ -80,6 +80,12 @@ abstract class DictionaryRepository extends AbstractRepository
         return $ids + $this->findIds($missing);
     }
 
+    /** @return list<string> All names, alphabetically (dictionaries are small). */
+    public function names(): array
+    {
+        return array_column($this->db->fetchAll(sprintf('SELECT name FROM %s ORDER BY name', $this->table())), 'name');
+    }
+
     public function idFor(string $name): int
     {
         return $this->idsFor([$name])[mb_strtolower($name)];

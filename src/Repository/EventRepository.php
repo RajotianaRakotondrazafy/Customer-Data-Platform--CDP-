@@ -49,6 +49,30 @@ final class EventRepository extends AbstractRepository
     }
 
     /**
+     * Latest events across all customers, newest first (keyset on the PK: id < cursor).
+     * Ordered by id = ingestion order, which is what a live feed shows.
+     *
+     * @param int $beforeId 0 = from the newest.
+     * @return list<Event>
+     */
+    public function latest(int $limit, int $beforeId = 0): array
+    {
+        // Explicit WHERE (not "? = 0 OR id < ?") so MySQL does a clean backward PK range read.
+        $where = $beforeId > 0 ? 'WHERE e.id < ?' : '';
+        $rows = $this->db->fetchAll(
+            "SELECT e.id, e.customer_id, t.name AS event_type, e.occurred_at, e.received_at, e.properties
+             FROM events e
+             JOIN event_types t ON t.id = e.event_type_id
+             $where
+             ORDER BY e.id DESC
+             LIMIT ?",
+            $beforeId > 0 ? [$beforeId, $limit] : [$limit],
+        );
+
+        return array_map(Event::fromRow(...), $rows);
+    }
+
+    /**
      * Most recent events of a customer. Served by idx_events_customer_time:
      * reads exactly $limit index entries, no sort.
      *

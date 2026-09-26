@@ -48,7 +48,7 @@ final class EventIngestionService
         $indexed = $this->indexableProperties($event->properties);
         $keyIds = $indexed === [] ? [] : $this->propertyKeys->idsFor(array_keys($indexed));
 
-        $hash = $this->dedupHash($event);
+        $hash = self::dedupHash($event);
 
         return $this->db->transaction(function () use ($event, $eventTypeId, $indexed, $keyIds, $hash): IngestionResult {
             $customerId = $this->customers->upsert($event->email, $event->name);
@@ -97,7 +97,7 @@ final class EventIngestionService
      * SHA-256 of the event identity: same customer + event + timestamp + properties
      * = same event, whatever the key order in the payload.
      */
-    private function dedupHash(IncomingEvent $event): string
+    public static function dedupHash(IncomingEvent $event): string
     {
         return hash('sha256', json_encode([
             $event->email,
